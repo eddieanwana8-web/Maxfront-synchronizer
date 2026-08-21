@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxfront Global Time-Zone Synchronizer</title>
+    <style>
+        :root {
+            --primary-color: #0A2540;
+            --secondary-color: #635BFF;
+            --accent-color: #00D4B2;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #EEEEEE;
+            padding-bottom: 15px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input[type="time"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #E0E0E0;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="time"]:focus {
+            border-color: var(--secondary-color);
+        }
+
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #4B43D3;
+        }
+
+        .results-section {
+            background: #F4F5F7;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .results-section h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .zone-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .zone-card:last-child {
+            border-bottom: none;
+        }
+
+        .zone-name {
+            font-weight: 500;
+        }
+
+        .zone-time {
+            font-weight: 700;
+            color: var(--secondary-color);
+            font-size: 18px;
+        }
+
+        .rollover {
+            font-size: 12px;
+            color: #FF5A5F;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Maxfront Remote Synchronizer</h1>
+            <p>Coordinate real-time meetings across global operations teams</p>
+        </header>
+
+        <div class="input-group">
+            <label for="lagosTime">Enter Meeting Time in Nigeria (WAT):</label>
+            <div class="time-inputs">
+                <input type="time" id="lagosTime">
+                <button class="btn" onclick="syncTimes()">Sync Times</button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h3 id="resultTitle">Global Sync Times</h3>
+            <div id="outputContainer">
+                <!-- Dynamic calculation loads here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function syncTimes() {
+            const timeInput = document.getElementById('lagosTime').value;
+            if (!timeInput) return;
+
+            const [hoursStr, minutesStr] = timeInput.split(':');
+            const lagosHour = parseInt(hoursStr, 10);
+            const lagosMinute = minutesStr; 
+
+            document.getElementById('resultTitle').innerText = `Global Sync Times for ${timeInput} WAT (Nigeria)`;
+
+            const regions = [
+                { name: "🌍 Kuala Lumpur (Southeast Asia)", offset: 7 },
+                { name: "🌍 Dili (Timor-Leste)", offset: 8 }
+            ];
+
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = ''; 
+
+            regions.forEach(region => {
+                let rawHour = lagosHour + region.offset;
+                let convertedHour = rawHour % 24;
+                let formattedHour = convertedHour.toString().padStart(2, '0');
+                let dayStatus = rawHour >= 24 ? '<span class="rollover">(Next Day)</span>' : '';
+
+                const zoneCard = document.createElement('div');
+                zoneCard.className = 'zone-card';
+                zoneCard.innerHTML = `
+                    <span class="zone-name">${region.name}</span>
+                    <span class="zone-time">${formattedHour}:${lagosMinute}${dayStatus}</span>
+                `;
+                outputContainer.appendChild(zoneCard);
+            });
+        }
+
+        // Live Time-Aware Execution Optimization
+        window.onload = function() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('lagosTime').value = `${hours}:${minutes}`;
+            syncTimes(); 
+        };
+    </script>
+</body>
+</html>
