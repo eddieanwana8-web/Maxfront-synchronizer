@@ -61,7 +61,10 @@
         .meeting-actions .btn { padding: 9px 14px; font-size: 13px; }
         .share-status { display: none; margin-top: 8px; color: var(--red); font-size: 12px; }
         .share-status.visible { display: block; }
-        .share-status a { display: inline-block; margin-top: 4px; color: var(--red); font-weight: 600; overflow-wrap: anywhere; }
+        #sharedMeetingLink.share-status { display: none; margin-top: 8px; color: #0000ee; font-weight: 600; text-decoration: underline; overflow-wrap: anywhere; }
+        #sharedMeetingLink.share-status.visible { display: inline-block; }
+        #sharedMeetingLink.share-status:visited { color: #551a8b; }
+        #sharedMeetingLink.share-status:hover, #sharedMeetingLink.share-status:focus { color: #0000aa; }
         .role-banner { display: none; margin-bottom: 20px; padding: 12px 14px; color: var(--black); background: var(--white); border: 1px solid var(--line-red); border-left: 4px solid var(--red); border-radius: 6px; font-size: 13px; line-height: 1.4; }
         .role-banner.visible { display: block; }
         .role-banner strong { color: var(--red); }
@@ -115,6 +118,7 @@
         <section class="results-section"><h3 id="resultTitle">Global Sync Times</h3><div id="outputContainer"></div></section>
     </main>
     <script>
+        const MEETING_API_URL = window.MAXFRONT_API_URL || 'http://127.0.0.1:8787';
         let trackingInterval = null;
         let scheduledMeetingKey = '';
 
@@ -210,6 +214,47 @@
             meetingPanel.classList.remove('empty');
         }
 
+        function applyMeetingTime(time) {
+            if (time) {
+                localStorage.setItem('meeting_time', time);
+                document.getElementById('lagosTime').value = time;
+                showScheduledMeeting(time);
+                syncTimes();
+                scheduledMeetingKey = '';
+                checkMeetingCountdown();
+                if (!trackingInterval) trackingInterval = setInterval(checkMeetingCountdown, 1000);
+                return;
+            }
+            localStorage.removeItem('meeting_time');
+            document.getElementById('lagosTime').value = '';
+            showScheduledMeeting('');
+            document.getElementById('reminderBanner').style.display = 'none';
+            document.getElementById('resultTitle').textContent = 'Global Sync Times';
+            document.getElementById('outputContainer').innerHTML = '';
+            clearInterval(trackingInterval);
+            trackingInterval = null;
+            scheduledMeetingKey = '';
+        }
+
+        async function loadMeetingFromServer() {
+            try {
+                const response = await fetch(MEETING_API_URL + '/api/meeting', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Meeting API unavailable');
+                const data = await response.json();
+                applyMeetingTime(data.meeting_time || '');
+            } catch (error) {
+                // Keep the local fallback working when the API is not running yet.
+                console.warn('Shared meeting API unavailable; using local fallback.', error);
+            }
+        }
+
+        async function saveMeetingToServer(time) {
+            const response = await fetch(MEETING_API_URL + '/api/meeting', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meeting_time: time })
+            });
+            if (!response.ok) throw new Error('Meeting could not be published');
+        }
+
         function getNextMeeting(time) {
             const [hours, minutes] = time.split(':').map(Number); const meeting = new Date(); meeting.setHours(hours, minutes, 0, 0);
             if (meeting <= new Date()) meeting.setDate(meeting.getDate() + 1); return meeting;
@@ -234,14 +279,24 @@
             }
         }
 
-        function handleTimeChange() {
+        async function handleTimeChange() {
             if (localStorage.getItem('account_role') !== 'Employer') {
                 document.getElementById('staffLockedMessage').classList.add('visible');
                 return;
             }
-            localStorage.setItem('meeting_time', document.getElementById('lagosTime').value);
-            showScheduledMeeting(document.getElementById('lagosTime').value);
-            scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000);
+            const time = document.getElementById('lagosTime').value;
+            if (!time) return;
+            try {
+                await saveMeetingToServer(time);
+                applyMeetingTime(time);
+                document.getElementById('shareStatus').textContent = 'Meeting published for all Staff devices.';
+                document.getElementById('shareStatus').classList.add('visible');
+            } catch (error) {
+                localStorage.setItem('meeting_time', time);
+                applyMeetingTime(time);
+                document.getElementById('shareStatus').textContent = 'Saved on this device only. Start the shared meeting API to reach Staff devices.';
+                document.getElementById('shareStatus').classList.add('visible');
+            }
         }
 
         function shareMeetingTime() {
@@ -252,14 +307,21 @@
                 document.getElementById('shareStatus').classList.add('visible');
                 return;
             }
-            const shareUrl = new URL(window.location.href);
+            if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+                const shareStatus = document.getElementById('shareStatus');
+                shareStatus.textContent = 'This is a local test link. Deploy Maxfront to a public HTTPS address before sharing it with Staff.';
+                shareStatus.classList.add('visible');
+                document.getElementById('sharedMeetingLink').classList.remove('visible');
+                return;
+            }
+            const shareUrl = new URL(window.location.origin + window.location.pathname);
             shareUrl.searchParams.set('meeting', time);
             const shareText = shareUrl.toString();
             const meetingLink = document.getElementById('sharedMeetingLink');
             meetingLink.href = shareText;
             meetingLink.classList.add('visible');
             if (navigator.share) {
-                navigator.share({ title: 'Maxfront scheduled meeting', text: 'Open this link to see the scheduled meeting and receive the alert.', url: shareText });
+                navigator.share({ title: 'Maxfront scheduled meeting', url: shareText });
             } else if (navigator.clipboard) {
                 navigator.clipboard.writeText(shareText).then(function() {
                     document.getElementById('shareStatus').textContent = 'Meeting link copied. Send it to Staff.';
@@ -270,16 +332,17 @@
             }
         }
 
-        function clearMeetingTime() {
+        async function clearMeetingTime() {
             if (localStorage.getItem('account_role') !== 'Employer') return;
-            localStorage.removeItem('meeting_time');
-            clearInterval(trackingInterval);
-            scheduledMeetingKey = '';
-            document.getElementById('lagosTime').value = '';
-            document.getElementById('reminderBanner').style.display = 'none';
-            showScheduledMeeting('');
-            document.getElementById('resultTitle').textContent = 'Global Sync Times';
-            document.getElementById('outputContainer').innerHTML = '';
+            try {
+                const response = await fetch(MEETING_API_URL + '/api/meeting', { method: 'DELETE' });
+                if (!response.ok) throw new Error('Meeting could not be cleared');
+                applyMeetingTime('');
+            } catch (error) {
+                applyMeetingTime('');
+                document.getElementById('shareStatus').textContent = 'Cleared on this device only. Start the shared meeting API to clear it for Staff devices.';
+                document.getElementById('shareStatus').classList.add('visible');
+            }
         }
         window.addEventListener('load', function() {
             const sharedMeeting = new URLSearchParams(window.location.search).get('meeting');
@@ -291,6 +354,8 @@
             showScheduledMeeting(savedMeeting);
             syncTimes();
             if (savedMeeting) { checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
+            loadMeetingFromServer();
+            setInterval(loadMeetingFromServer, 5000);
         });
     </script>
 </body>
