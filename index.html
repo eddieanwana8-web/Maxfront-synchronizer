@@ -55,6 +55,8 @@
         .scheduled-meeting.visible { display: block; }
         .scheduled-meeting-label { margin-bottom: 5px; color: var(--red); font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .scheduled-meeting-time { color: var(--black); font-size: 24px; font-weight: 700; }
+        .meeting-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .meeting-actions .btn { padding: 9px 14px; font-size: 13px; }
         @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
@@ -90,12 +92,13 @@
         </section>
         <div id="staffLockedMessage" class="locked-message">Staff accounts cannot set meeting times. Ask your Employer to schedule the meeting; this device will receive the 15-minute alert when notifications are allowed.</div>
         <section id="scheduledMeeting" class="scheduled-meeting" aria-live="polite">
-            <div class="scheduled-meeting-label">Next fixed meeting</div>
+            <div class="scheduled-meeting-label">Scheduled meeting</div>
             <div id="scheduledMeetingTime" class="scheduled-meeting-time"></div>
         </section>
         <div id="meetingControls" class="input-group">
             <label for="lagosTime">Schedule local meeting time (Nigeria WAT)</label>
-            <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Deploy tracker</button></div>
+            <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Set meeting</button></div>
+            <div class="meeting-actions"><button class="btn secondary" type="button" onclick="clearMeetingTime()">Clear meeting</button></div>
         </div>
         <div id="reminderBanner" class="reminder-banner" aria-live="assertive">Awaiting session deployment...</div>
         <section class="results-section"><h3 id="resultTitle">Global Sync Times</h3><div id="outputContainer"></div></section>
@@ -224,11 +227,23 @@
             showScheduledMeeting(document.getElementById('lagosTime').value);
             scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000);
         }
+
+        function clearMeetingTime() {
+            if (localStorage.getItem('account_role') !== 'Employer') return;
+            localStorage.removeItem('meeting_time');
+            clearInterval(trackingInterval);
+            scheduledMeetingKey = '';
+            document.getElementById('lagosTime').value = '';
+            document.getElementById('reminderBanner').style.display = 'none';
+            showScheduledMeeting('');
+            document.getElementById('resultTitle').textContent = 'Global Sync Times';
+            document.getElementById('outputContainer').innerHTML = '';
+        }
         window.addEventListener('load', function() {
             loadActiveSession();
             if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible');
             const savedMeeting = localStorage.getItem('meeting_time'); const now = new Date();
-            document.getElementById('lagosTime').value = savedMeeting || (String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'));
+            document.getElementById('lagosTime').value = savedMeeting || '';
             showScheduledMeeting(savedMeeting);
             syncTimes();
             if (savedMeeting) { checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
