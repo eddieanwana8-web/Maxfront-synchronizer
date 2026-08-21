@@ -5,328 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maxfront Global Sync Platform</title>
     <style>
-        :root {
-            --primary-color: #0A2540;
-            --secondary-color: #635BFF;
-            --accent-color: #00D4B2;
-            --bg-color: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --text-color: #333333;
-            --alert-color: #FF5A5F;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #EEEEEE;
-            padding-bottom: 15px;
-        }
-
-        header h1 {
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .user-badge {
-            background: #E8E7FF;
-            color: var(--secondary-color);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .time-inputs {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        input[type="time"] {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #E0E0E0;
-            border-radius: 6px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        input[type="time"]:focus {
-            border-color: var(--secondary-color);
-        }
-
-        .btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #4B43D3;
-        }
-
-        .reminder-banner {
-            background-color: #E8E7FF;
-            color: var(--secondary-color);
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 25px;
-            font-weight: 600;
-            font-size: 14px;
-            text-align: center;
-            border: 1px dashed var(--secondary-color);
-            display: none;
-        }
-
-        .reminder-banner.active {
-            background-color: #FFEBEB;
-            color: var(--alert-color);
-            border-color: var(--alert-color);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        .results-section {
-            background: #F4F5F7;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .results-section h3 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            font-size: 16px;
-        }
-
-        .zone-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #E0E0E0;
-        }
-
-        .zone-card:last-child {
-            border-bottom: none;
-        }
-
-        .zone-name {
-            font-weight: 500;
-        }
-
-        .zone-time {
-            font-weight: 700;
-            color: var(--secondary-color);
-            font-size: 18px;
-        }
-
-        .rollover {
-            font-size: 12px;
-            color: var(--alert-color);
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        /* Authentication Interface Overlay */
-        .modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--primary-color);
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            padding: 30px;
-        }
-
-        .modal-card {
-            background: white;
-            width: 100%;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .modal-card h2 {
-            margin-bottom: 5px;
-            color: var(--primary-color);
-        }
-
-        .modal-card p {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .modal-card input, .modal-card select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #E0E0E0;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .modal-card input:focus, .modal-card select:focus {
-            border-color: var(--secondary-color);
-        }
+        :root { --navy: #0a2540; --blue: #635bff; --mint: #00a889; --paper: #f8f9fa; --red: #e34b50; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Tahoma, sans-serif; }
+        body { min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; color: #333; background: radial-gradient(circle at top left, #e8e7ff, transparent 42%), var(--paper); }
+        .container { position: relative; width: 100%; max-width: 600px; padding: 30px; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 12px 34px rgba(10, 37, 64, .12); }
+        header { margin-bottom: 25px; padding-bottom: 15px; text-align: center; border-bottom: 2px solid #eee; }
+        header h1 { margin-bottom: 5px; color: var(--navy); font-size: 24px; }
+        header p { color: #666; font-size: 14px; }
+        .user-badge { display: inline-block; margin-bottom: 10px; padding: 6px 12px; color: var(--blue); background: #e8e7ff; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--navy); font-weight: 600; }
+        .time-inputs { display: flex; gap: 15px; align-items: center; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; outline: none; font-size: 16px; }
+        input:focus, select:focus { border-color: var(--blue); }
+        input[type="time"] { flex: 1; }
+        .btn { padding: 12px 24px; color: white; background: var(--blue); border: 0; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn:hover { background: #4b43d3; }
+        .btn.secondary { padding: 9px 14px; font-size: 13px; background: var(--navy); }
+        .full-width { width: 100%; }
+        .reminder-banner { display: none; margin-bottom: 25px; padding: 12px; color: var(--blue); background: #e8e7ff; border: 1px dashed var(--blue); border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; }
+        .reminder-banner.active { color: var(--red); background: #ffebeb; border-color: var(--red); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 50% { opacity: .6; } }
+        .results-section { padding: 20px; background: #f4f5f7; border-left: 4px solid var(--mint); border-radius: 8px; }
+        .results-section h3 { margin-bottom: 15px; color: var(--navy); font-size: 16px; }
+        .zone-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
+        .zone-card:last-child { border-bottom: 0; }
+        .zone-time { color: var(--blue); font-size: 18px; font-weight: 700; }
+        .rollover { margin-left: 5px; color: var(--red); font-size: 12px; }
+        .modal-overlay { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 30px; background: var(--navy); }
+        .modal-card { width: 100%; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,.2); }
+        .modal-card h2 { margin-bottom: 5px; color: var(--navy); }
+        .modal-card p { margin-bottom: 15px; color: #666; font-size: 13px; line-height: 1.5; }
+        .modal-card input, .modal-card select { margin-bottom: 15px; }
+        .notification-setup { display: none; gap: 12px; align-items: center; margin-bottom: 20px; padding: 14px; background: #eefaf7; border: 1px solid #bce9df; border-radius: 8px; }
+        .notification-setup.visible { display: flex; }
+        .notification-setup strong { display: block; margin-bottom: 3px; color: var(--navy); font-size: 14px; }
+        .notification-setup p, .notification-status { color: #47706a; font-size: 12px; line-height: 1.4; }
+        .notification-status.enabled { color: var(--mint); }
+        @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        
-        <!-- Registration Form View -->
+    <main class="container">
         <div id="authModal" class="modal-overlay">
-            <div class="modal-card">
-                <h2>Staff Identity Registration</h2>
-                <p>Configure your account settings to authorize system tone responses and desktop sync alerts.</p>
-                <input type="email" id="staffEmail" placeholder="Enter Staff Email (e.g., name@maxfront.com)" required>
-                <input type="tel" id="staffPhone" placeholder="Enter Phone Number" required>
-                <select id="authProvider">
-                    <option value="Enterprise Portal">Sign up with Maxfront ID</option>
+            <form class="modal-card" onsubmit="registerStaff(event)">
+                <h2>Staff sign up</h2>
+                <p>Register with your work contact details. After signup, enable Maxfront notifications in your phone settings so meeting alerts can reach you.</p>
+                <input type="email" id="staffEmail" placeholder="Work email address" autocomplete="email" required>
+                <input type="tel" id="staffPhone" placeholder="Phone number" autocomplete="tel" required>
+                <select id="authProvider" aria-label="Sign up provider">
+                    <option value="Maxfront ID">Sign up with Maxfront ID</option>
                     <option value="Google Workspace">Sign up with Google Workspace</option>
                     <option value="Apple Enterprise">Sign up with Apple Identity</option>
                 </select>
-                <button class="btn" style="width: 100%;" onclick="registerStaff()">Authorize Account</button>
-            </div>
+                <button class="btn full-width" type="submit">Create staff account</button>
+            </form>
         </div>
-
         <header>
-            <div id="userBadge" class="user-badge">Initializing Token...</div>
+            <div id="userBadge" class="user-badge">Staff registration required</div>
             <h1>Maxfront Global Sync Platform</h1>
             <p>Enterprise Core Communication Node</p>
         </header>
-
+        <section id="notificationSetup" class="notification-setup" aria-live="polite">
+            <div><strong>Notification setup</strong><p id="notificationStatus">Turn on Maxfront notifications in your phone settings.</p></div>
+            <button class="btn secondary" type="button" onclick="requestNotifications()">Allow</button>
+        </section>
         <div class="input-group">
-            <label for="lagosTime">Schedule Local Meeting Node (Nigeria WAT):</label>
-            <div class="time-inputs">
-                <input type="time" id="lagosTime">
-                <button class="btn" onclick="handleTimeChange()">Deploy Tracker</button>
-            </div>
+            <label for="lagosTime">Schedule local meeting time (Nigeria WAT)</label>
+            <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Deploy tracker</button></div>
         </div>
-
-        <div id="reminderBanner" class="reminder-banner">
-            Awaiting session deployment...
-        </div>
-
-        <div class="results-section">
-            <h3 id="resultTitle">Global Sync Times</h3>
-            <div id="outputContainer">
-                <!-- Data streams populate here dynamically -->
-            </div>
-        </div>
-    </div>
-
+        <div id="reminderBanner" class="reminder-banner" aria-live="assertive">Awaiting session deployment...</div>
+        <section class="results-section"><h3 id="resultTitle">Global Sync Times</h3><div id="outputContainer"></div></section>
+    </main>
     <script>
         let trackingInterval = null;
-        let alertTriggered = false;
+        let scheduledMeetingKey = '';
 
-        // Sound Synthesis Generation
         function playNotificationTone() {
             try {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
-                
-                let osc1 = context.createOscillator();
-                let gain1 = context.createGain();
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(587.33, context.currentTime); 
-                gain1.gain.setValueAtTime(0.2, context.currentTime);
-                gain1.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.4);
-                osc1.connect(gain1);
-                gain1.connect(context.destination);
-                osc1.start();
-                osc1.stop(context.currentTime + 0.4);
+                [587.33, 880].forEach(function(frequency, index) {
+                    const oscillator = context.createOscillator(); const gain = context.createGain();
+                    oscillator.frequency.value = frequency; gain.gain.setValueAtTime(.2, context.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(.01, context.currentTime + .5); oscillator.connect(gain); gain.connect(context.destination);
+                    oscillator.start(context.currentTime + index * .12); oscillator.stop(context.currentTime + .5 + index * .12);
+                });
+            } catch (error) { console.warn('Audio notification unavailable.', error); }
+        }
 
-                setTimeout(() => {
-                    let osc2 = context.createOscillator();
-                    let gain2 = context.createGain();
-                    osc2.type = 'sine';
-                    osc2.frequency.setValueAtTime(880.00, context.currentTime); 
-                    gain2.gain.setValueAtTime(0.2, context.currentTime);
-                    gain2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.6);
-                    osc2.connect(gain2);
-                    gain2.connect(context.destination);
-                    osc2.start();
-                    osc2.stop(context.currentTime + 0.6);
-                }, 120);
-            } catch(e) {
-                console.error("Audio system initialized with constraint:", e);
+        function updateNotificationStatus(permission) {
+            const status = document.getElementById('notificationStatus');
+            status.textContent = permission === 'granted' ? 'Browser alerts enabled. Also allow Maxfront in your phone settings.' : 'Turn on Maxfront notifications in your phone settings to hear meeting alerts.';
+            status.className = permission === 'granted' ? 'notification-status enabled' : 'notification-status';
+        }
+
+        function requestNotifications() {
+            if (!('Notification' in window)) { alert('Browser notifications are unavailable. Enable Maxfront notifications in your phone settings when using the app.'); return; }
+            Notification.requestPermission().then(updateNotificationStatus);
+        }
+
+        function registerStaff(event) {
+            event.preventDefault();
+            localStorage.setItem('staff_email', document.getElementById('staffEmail').value.trim());
+            localStorage.setItem('staff_phone', document.getElementById('staffPhone').value.trim());
+            localStorage.setItem('staff_provider', document.getElementById('authProvider').value);
+            document.getElementById('authModal').style.display = 'none'; document.getElementById('notificationSetup').classList.add('visible');
+            loadActiveSession(); requestNotifications();
+        }
+
+        function loadActiveSession() {
+            const email = localStorage.getItem('staff_email');
+            document.getElementById('userBadge').textContent = email ? 'Staff: ' + email : 'Staff registration required';
+            if (email && 'Notification' in window) updateNotificationStatus(Notification.permission);
+        }
+
+        function syncTimes() {
+            const time = document.getElementById('lagosTime').value; if (!time) return;
+            const [hours, minutes] = time.split(':').map(Number);
+            document.getElementById('resultTitle').textContent = 'Global Sync Matrix for ' + time + ' WAT';
+            document.getElementById('outputContainer').innerHTML = [{ name: 'Kuala Lumpur Hub (MYT)', offset: 7 }, { name: 'Dili Core Hub (TLT)', offset: 8 }].map(function(region) {
+                const rawHour = hours + region.offset;
+                return '<div class="zone-card"><span>' + region.name + '</span><span class="zone-time">' + String(rawHour % 24).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + (rawHour >= 24 ? ' <span class="rollover">(Next Day)</span>' : '') + '</span></div>';
+            }).join('');
+        }
+
+        function getNextMeeting(time) {
+            const [hours, minutes] = time.split(':').map(Number); const meeting = new Date(); meeting.setHours(hours, minutes, 0, 0);
+            if (meeting <= new Date()) meeting.setDate(meeting.getDate() + 1); return meeting;
+        }
+
+        function checkMeetingCountdown() {
+            const time = document.getElementById('lagosTime').value; if (!time) return;
+            const meeting = getNextMeeting(time); const diffMs = meeting - new Date();
+            const minutes = Math.max(0, Math.floor(diffMs / 60000)); const seconds = Math.max(0, Math.floor(diffMs % 60000 / 1000));
+            const banner = document.getElementById('reminderBanner'); banner.style.display = 'block'; banner.classList.toggle('active', diffMs > 0 && diffMs <= 900000);
+            banner.textContent = diffMs > 900000 ? 'Reminder armed: alert in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : diffMs > 0 ? 'Meeting alert: starts in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : 'Meeting time reached.';
+            const meetingKey = meeting.toISOString();
+            if (diffMs <= 900000 && diffMs > 840000 && scheduledMeetingKey !== meetingKey) {
+                scheduledMeetingKey = meetingKey; playNotificationTone();
+                if ('Notification' in window && Notification.permission === 'granted') new Notification('Maxfront meeting reminder', { body: 'Your meeting starts in 15 minutes.', requireInteraction: true });
             }
         }
 
-        // Form Registration Processing
-        function registerStaff() {
-            const email = document.getElementById('staffEmail').value;
-            const phone = document.getElementById('staffPhone').value;
-            const provider = document.getElementById('authProvider').value;
-
-            if(!email || !phone) {
-                alert("Please fully satisfy identity parameters.");
-                return;
-            }
-return;}localStorage.setItem('staff_email', email);localStorage.setItem('staff_provider', provider);if (window.Notification && Notification.permission !== "granted") {Notification.requestPermission();}document.getElementById('authModal').style.display = 'none';loadActiveSession();}// Checks if a staff member is already logged infunction loadActiveSession() {const activeUser = localStorage.getItem('staff_email');const activeProvider = localStorage.getItem('staff_provider');if (activeUser) {document.getElementById('authModal').style.display = 'none';document.getElementById('userBadge').innerText = 👤 ${activeUser} (${activeProvider});} else {document.getElementById('userBadge').innerText = "❌ Session Unauthorized";}}// Calculates global times for Maxfront regionsfunction syncTimes() {const timeInput = document.getElementById('lagosTime').value;if (!timeInput) return;const [hoursStr, minutesStr] = timeInput.split(':');const lagosHour = parseInt(hoursStr, 10);document.getElementById('resultTitle').innerText = Global Sync Matrix for ${timeInput} WAT;const regions = [{ name: "🌍 Kuala Lumpur Hub (MYT)", offset: 7 },{ name: "🌍 Dili Core Hub (TLT)", offset: 8 }];const outputContainer = document.getElementById('outputContainer');outputContainer.innerHTML = '';regions.forEach(region => {let rawHour = lagosHour + region.offset;let convertedHour = rawHour % 24;let formattedHour = convertedHour.toString().padStart(2, '0');let dayStatus = rawHour >= 24 ? '(Next Day)' : '';const zoneCard = document.createElement('div');zoneCard.className = 'zone-card';zoneCard.innerHTML = <span class="zone-name">${region.name}</span> <span class="zone-time">${formattedHour}:${minutesStr} ${dayStatus}</span>;outputContainer.appendChild(zoneCard);});}// Monitering loop for the 15-minute countdown alertfunction checkMeetingCountdown() {const timeInput = document.getElementById('lagosTime').value;if (!timeInput) return;const [targetHours, targetMinutes] = timeInput.split(':').map(Number);const now = new Date();const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHours, targetMinutes, 0);if (targetTime < now) {targetTime.setDate(targetTime.getDate() + 1);}const diffMs = targetTime - now;const diffMins = Math.floor(diffMs / 1000 / 60);const diffSecs = Math.floor((diffMs / 1000) % 60);const banner = document.getElementById('reminderBanner');banner.style.display = 'block';if (diffMins > 15) {banner.classList.remove('active');banner.innerText = ⏳ Monitor Active: Synchronization cycles execute in ${diffMins}m ${diffSecs}s.;} else if (diffMins <= 15 && diffMins >= 0) {banner.classList.add('active');banner.innerText = 🚨 ALERT DELTA: Sync initialization executes in ${diffMins}m ${diffSecs}s!;if (!alertTriggered) {alertTriggered = true;playNotificationTone();if (window.Notification && Notification.permission === "granted") {new Notification("Maxfront System Alert", {body: "Operational synchronization meeting starts in exactly 15 minutes! Standby.",requireInteraction: true});}}} else {banner.classList.remove('active');banner.innerText = 🏁 The scheduled operational baseline has reached.;clearInterval(trackingInterval);}}function handleTimeChange() {alertTriggered = false;syncTimes();if (trackingInterval) clearInterval(trackingInterval);checkMeetingCountdown();trackingInterval = setInterval(checkMeetingCountdown, 1000);}window.onload = function() {loadActiveSession();const now = new Date();const hours = now.getHours().toString().padStart(2, '0');const minutes = now.getMinutes().toString().padStart(2, '0');document.getElementById('lagosTime').value = ${hours}:${minutes};syncTimes();};
+        function handleTimeChange() { scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
+        window.addEventListener('load', function() { loadActiveSession(); if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible'); const now = new Date(); document.getElementById('lagosTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'); syncTimes(); });
+    </script>
+</body>
+</html>
