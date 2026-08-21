@@ -39,16 +39,27 @@
         .modal-card input, .modal-card select { margin-bottom: 15px; }
         .notification-setup { display: none; gap: 12px; align-items: center; margin-bottom: 20px; padding: 14px; background: var(--soft-red); border: 1px solid var(--line-red); border-radius: 8px; }
         .notification-setup.visible { display: flex; }
+        .bell-control { display: none; position: fixed; top: 18px; left: 18px; z-index: 20; width: 52px; height: 52px; align-items: center; justify-content: center; color: var(--white); background: var(--red); border: 3px solid var(--white); border-radius: 50%; box-shadow: 0 5px 16px rgba(17, 17, 17, .2); font-size: 25px; cursor: pointer; }
+        .bell-control.visible { display: flex; }
+        .bell-control.ringing { animation: ring 0.65s ease-in-out 3; }
+        @keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-16deg); } 40% { transform: rotate(13deg); } 60% { transform: rotate(-10deg); } 80% { transform: rotate(7deg); } }
+        .toggle-button { min-width: 68px; padding: 9px 13px; color: var(--white); background: var(--black); border: 0; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .toggle-button.on { background: var(--red); }
         .notification-setup strong { display: block; margin-bottom: 3px; color: var(--black); font-size: 14px; }
         .notification-setup p, .notification-status { color: var(--ink); font-size: 12px; line-height: 1.4; }
         .notification-status.enabled { color: var(--red); }
         .role-note { margin: -8px 0 18px; color: var(--ink); font-size: 12px; line-height: 1.4; }
         .locked-message { display: none; margin-bottom: 20px; padding: 12px; color: var(--black); background: var(--soft-red); border-left: 4px solid var(--red); border-radius: 6px; font-size: 13px; line-height: 1.4; }
         .locked-message.visible { display: block; }
+        .scheduled-meeting { display: none; margin-bottom: 20px; padding: 16px; color: var(--black); background: var(--white); border: 2px solid var(--red); border-radius: 8px; box-shadow: 0 4px 12px rgba(17, 17, 17, .08); }
+        .scheduled-meeting.visible { display: block; }
+        .scheduled-meeting-label { margin-bottom: 5px; color: var(--red); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .scheduled-meeting-time { color: var(--black); font-size: 24px; font-weight: 700; }
         @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
 <body>
+    <button id="bellControl" class="bell-control" type="button" aria-label="Meeting notifications off" title="Meeting notifications" onclick="toggleNotifications()">&#128276;</button>
     <main class="container">
         <div id="authModal" class="modal-overlay">
             <form class="modal-card" onsubmit="registerStaff(event)">
@@ -75,9 +86,13 @@
         </header>
         <section id="notificationSetup" class="notification-setup" aria-live="polite">
             <div><strong>Notification setup</strong><p id="notificationStatus">Turn on Maxfront notifications in your phone settings.</p></div>
-            <button class="btn secondary" type="button" onclick="requestNotifications()">Allow</button>
+            <button id="notificationToggle" class="toggle-button" type="button" aria-pressed="false" onclick="toggleNotifications()">OFF</button>
         </section>
         <div id="staffLockedMessage" class="locked-message">Staff accounts cannot set meeting times. Ask your Employer to schedule the meeting; this device will receive the 15-minute alert when notifications are allowed.</div>
+        <section id="scheduledMeeting" class="scheduled-meeting" aria-live="polite">
+            <div class="scheduled-meeting-label">Next fixed meeting</div>
+            <div id="scheduledMeetingTime" class="scheduled-meeting-time"></div>
+        </section>
         <div id="meetingControls" class="input-group">
             <label for="lagosTime">Schedule local meeting time (Nigeria WAT)</label>
             <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Deploy tracker</button></div>
@@ -94,7 +109,7 @@
                 const context = new (window.AudioContext || window.webkitAudioContext)();
                 [587.33, 880].forEach(function(frequency, index) {
                     const oscillator = context.createOscillator(); const gain = context.createGain();
-                    oscillator.frequency.value = frequency; gain.gain.setValueAtTime(.2, context.currentTime);
+                    oscillator.frequency.value = frequency; gain.gain.setValueAtTime(.5, context.currentTime);
                     gain.gain.exponentialRampToValueAtTime(.01, context.currentTime + .5); oscillator.connect(gain); gain.connect(context.destination);
                     oscillator.start(context.currentTime + index * .12); oscillator.stop(context.currentTime + .5 + index * .12);
                 });
@@ -103,13 +118,35 @@
 
         function updateNotificationStatus(permission) {
             const status = document.getElementById('notificationStatus');
-            status.textContent = permission === 'granted' ? 'Browser alerts enabled. Also allow Maxfront in your phone settings.' : 'Turn on Maxfront notifications in your phone settings to hear meeting alerts.';
-            status.className = permission === 'granted' ? 'notification-status enabled' : 'notification-status';
+            const enabled = localStorage.getItem('notifications_enabled') === 'true';
+            const toggle = document.getElementById('notificationToggle');
+            toggle.textContent = enabled ? 'ON' : 'OFF';
+            toggle.classList.toggle('on', enabled);
+            toggle.setAttribute('aria-pressed', String(enabled));
+            status.textContent = enabled && permission === 'granted' ? 'Alerts are ON. Allow Maxfront notifications in your phone settings.' : enabled ? 'Alerts are ON in Maxfront. Allow browser notifications to receive them.' : 'Alerts are OFF. Turn them ON to receive the meeting tone.';
+            status.className = enabled ? 'notification-status enabled' : 'notification-status';
         }
 
         function requestNotifications() {
-            if (!('Notification' in window)) { alert('Browser notifications are unavailable. Enable Maxfront notifications in your phone settings when using the app.'); return; }
-            Notification.requestPermission().then(updateNotificationStatus);
+            toggleNotifications();
+        }
+
+        function toggleNotifications() {
+            const enabled = localStorage.getItem('notifications_enabled') === 'true';
+            if (enabled) {
+                localStorage.setItem('notifications_enabled', 'false');
+                updateNotificationStatus('default');
+                return;
+            }
+            if (!('Notification' in window)) {
+                alert('Browser notifications are unavailable. Enable Maxfront notifications in your phone settings when using the app.');
+                return;
+            }
+            Notification.requestPermission().then(function(permission) {
+                const allowed = permission === 'granted';
+                localStorage.setItem('notifications_enabled', String(allowed));
+                updateNotificationStatus(permission);
+            });
         }
 
         function registerStaff(event) {
@@ -130,7 +167,8 @@
             document.getElementById('userBadge').textContent = email ? role + ': ' + email : 'Account registration required';
             document.getElementById('meetingControls').style.display = isEmployer ? 'block' : 'none';
             document.getElementById('staffLockedMessage').classList.toggle('visible', Boolean(email) && !isEmployer);
-            if (email && 'Notification' in window) updateNotificationStatus(Notification.permission);
+            document.getElementById('bellControl').classList.toggle('visible', Boolean(email) && !isEmployer);
+            if (email) updateNotificationStatus('Notification' in window ? Notification.permission : 'default');
         }
 
         function syncTimes() {
@@ -141,6 +179,16 @@
                 const rawHour = hours + region.offset;
                 return '<div class="zone-card"><span>' + region.name + '</span><span class="zone-time">' + String(rawHour % 24).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + (rawHour >= 24 ? ' <span class="rollover">(Next Day)</span>' : '') + '</span></div>';
             }).join('');
+        }
+
+        function showScheduledMeeting(time) {
+            const meetingPanel = document.getElementById('scheduledMeeting');
+            if (!time) {
+                meetingPanel.classList.remove('visible');
+                return;
+            }
+            document.getElementById('scheduledMeetingTime').textContent = time + ' WAT (Nigeria)';
+            meetingPanel.classList.add('visible');
         }
 
         function getNextMeeting(time) {
@@ -157,8 +205,13 @@
             banner.textContent = diffMs > 900000 ? 'Reminder armed: alert in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : diffMs > 0 ? 'Meeting alert: starts in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : 'Meeting time reached.';
             const meetingKey = meeting.toISOString();
             if (diffMs > 0 && diffMs <= 900000 && scheduledMeetingKey !== meetingKey) {
-                scheduledMeetingKey = meetingKey; playNotificationTone();
-                if ('Notification' in window && Notification.permission === 'granted') new Notification('Maxfront meeting reminder', { body: 'Your meeting starts in 15 minutes.', requireInteraction: true });
+                scheduledMeetingKey = meetingKey;
+                if (localStorage.getItem('notifications_enabled') === 'true') {
+                    const bell = document.getElementById('bellControl');
+                    bell.classList.remove('ringing'); void bell.offsetWidth; bell.classList.add('ringing');
+                    playNotificationTone();
+                    if ('Notification' in window && Notification.permission === 'granted') new Notification('Maxfront meeting reminder', { body: 'Your meeting starts in 15 minutes.', requireInteraction: true });
+                }
             }
         }
 
@@ -168,6 +221,7 @@
                 return;
             }
             localStorage.setItem('meeting_time', document.getElementById('lagosTime').value);
+            showScheduledMeeting(document.getElementById('lagosTime').value);
             scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000);
         }
         window.addEventListener('load', function() {
@@ -175,6 +229,7 @@
             if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible');
             const savedMeeting = localStorage.getItem('meeting_time'); const now = new Date();
             document.getElementById('lagosTime').value = savedMeeting || (String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'));
+            showScheduledMeeting(savedMeeting);
             syncTimes();
             if (savedMeeting) { checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
         });
