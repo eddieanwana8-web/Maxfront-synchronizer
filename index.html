@@ -42,6 +42,9 @@
         .notification-setup strong { display: block; margin-bottom: 3px; color: var(--black); font-size: 14px; }
         .notification-setup p, .notification-status { color: var(--ink); font-size: 12px; line-height: 1.4; }
         .notification-status.enabled { color: var(--red); }
+        .role-note { margin: -8px 0 18px; color: var(--ink); font-size: 12px; line-height: 1.4; }
+        .locked-message { display: none; margin-bottom: 20px; padding: 12px; color: var(--black); background: var(--soft-red); border-left: 4px solid var(--red); border-radius: 6px; font-size: 13px; line-height: 1.4; }
+        .locked-message.visible { display: block; }
         @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
@@ -49,8 +52,12 @@
     <main class="container">
         <div id="authModal" class="modal-overlay">
             <form class="modal-card" onsubmit="registerStaff(event)">
-                <h2>Staff sign up</h2>
-                <p>Register with your work contact details. After signup, enable Maxfront notifications in your phone settings so meeting alerts can reach you.</p>
+                <h2>Maxfront sign up</h2>
+                <p>Choose your account type. Employers schedule meetings, while Staff receive the 15-minute alert after allowing notifications.</p>
+                <select id="accountRole" aria-label="Account type" required>
+                    <option value="Employer">Employer</option>
+                    <option value="Staff">Staff</option>
+                </select>
                 <input type="email" id="staffEmail" placeholder="Work email address" autocomplete="email" required>
                 <input type="tel" id="staffPhone" placeholder="Phone number" autocomplete="tel" required>
                 <select id="authProvider" aria-label="Sign up provider">
@@ -58,11 +65,11 @@
                     <option value="Google Workspace">Sign up with Google Workspace</option>
                     <option value="Apple Enterprise">Sign up with Apple Identity</option>
                 </select>
-                <button class="btn full-width" type="submit">Create staff account</button>
+                <button class="btn full-width" type="submit">Create account</button>
             </form>
         </div>
         <header>
-            <div id="userBadge" class="user-badge">Staff registration required</div>
+            <div id="userBadge" class="user-badge">Account registration required</div>
             <h1>Maxfront Global Sync Platform</h1>
             <p>Enterprise Core Communication Node</p>
         </header>
@@ -70,7 +77,8 @@
             <div><strong>Notification setup</strong><p id="notificationStatus">Turn on Maxfront notifications in your phone settings.</p></div>
             <button class="btn secondary" type="button" onclick="requestNotifications()">Allow</button>
         </section>
-        <div class="input-group">
+        <div id="staffLockedMessage" class="locked-message">Staff accounts cannot set meeting times. Ask your Employer to schedule the meeting; this device will receive the 15-minute alert when notifications are allowed.</div>
+        <div id="meetingControls" class="input-group">
             <label for="lagosTime">Schedule local meeting time (Nigeria WAT)</label>
             <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Deploy tracker</button></div>
         </div>
@@ -106,16 +114,22 @@
 
         function registerStaff(event) {
             event.preventDefault();
+            const role = document.getElementById('accountRole').value;
             localStorage.setItem('staff_email', document.getElementById('staffEmail').value.trim());
             localStorage.setItem('staff_phone', document.getElementById('staffPhone').value.trim());
             localStorage.setItem('staff_provider', document.getElementById('authProvider').value);
+            localStorage.setItem('account_role', role);
             document.getElementById('authModal').style.display = 'none'; document.getElementById('notificationSetup').classList.add('visible');
             loadActiveSession(); requestNotifications();
         }
 
         function loadActiveSession() {
             const email = localStorage.getItem('staff_email');
-            document.getElementById('userBadge').textContent = email ? 'Staff: ' + email : 'Staff registration required';
+            const role = localStorage.getItem('account_role') || 'Staff';
+            const isEmployer = role === 'Employer';
+            document.getElementById('userBadge').textContent = email ? role + ': ' + email : 'Account registration required';
+            document.getElementById('meetingControls').style.display = isEmployer ? 'block' : 'none';
+            document.getElementById('staffLockedMessage').classList.toggle('visible', Boolean(email) && !isEmployer);
             if (email && 'Notification' in window) updateNotificationStatus(Notification.permission);
         }
 
@@ -135,20 +149,35 @@
         }
 
         function checkMeetingCountdown() {
-            const time = document.getElementById('lagosTime').value; if (!time) return;
+            const time = localStorage.getItem('meeting_time') || document.getElementById('lagosTime').value; if (!time) return;
+            document.getElementById('lagosTime').value = time;
             const meeting = getNextMeeting(time); const diffMs = meeting - new Date();
             const minutes = Math.max(0, Math.floor(diffMs / 60000)); const seconds = Math.max(0, Math.floor(diffMs % 60000 / 1000));
             const banner = document.getElementById('reminderBanner'); banner.style.display = 'block'; banner.classList.toggle('active', diffMs > 0 && diffMs <= 900000);
             banner.textContent = diffMs > 900000 ? 'Reminder armed: alert in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : diffMs > 0 ? 'Meeting alert: starts in ' + minutes + 'm ' + String(seconds).padStart(2, '0') + 's.' : 'Meeting time reached.';
             const meetingKey = meeting.toISOString();
-            if (diffMs <= 900000 && diffMs > 840000 && scheduledMeetingKey !== meetingKey) {
+            if (diffMs > 0 && diffMs <= 900000 && scheduledMeetingKey !== meetingKey) {
                 scheduledMeetingKey = meetingKey; playNotificationTone();
                 if ('Notification' in window && Notification.permission === 'granted') new Notification('Maxfront meeting reminder', { body: 'Your meeting starts in 15 minutes.', requireInteraction: true });
             }
         }
 
-        function handleTimeChange() { scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
-        window.addEventListener('load', function() { loadActiveSession(); if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible'); const now = new Date(); document.getElementById('lagosTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'); syncTimes(); });
+        function handleTimeChange() {
+            if (localStorage.getItem('account_role') !== 'Employer') {
+                document.getElementById('staffLockedMessage').classList.add('visible');
+                return;
+            }
+            localStorage.setItem('meeting_time', document.getElementById('lagosTime').value);
+            scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000);
+        }
+        window.addEventListener('load', function() {
+            loadActiveSession();
+            if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible');
+            const savedMeeting = localStorage.getItem('meeting_time'); const now = new Date();
+            document.getElementById('lagosTime').value = savedMeeting || (String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'));
+            syncTimes();
+            if (savedMeeting) { checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000); }
+        });
     </script>
 </body>
 </html>
