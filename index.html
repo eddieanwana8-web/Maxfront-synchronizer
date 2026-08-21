@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maxfront Global Time-Zone Synchronizer</title>
+    <title>Maxfront Global Sync Platform</title>
     <style>
         :root {
             --primary-color: #0A2540;
@@ -12,6 +12,7 @@
             --bg-color: #F8F9FA;
             --card-bg: #FFFFFF;
             --text-color: #333333;
+            --alert-color: #FF5A5F;
         }
 
         * {
@@ -38,6 +39,7 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
 
         header {
@@ -58,8 +60,19 @@
             font-size: 14px;
         }
 
+        .user-badge {
+            background: #E8E7FF;
+            color: var(--secondary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
         .input-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         label {
@@ -105,6 +118,32 @@
             background-color: #4B43D3;
         }
 
+        .reminder-banner {
+            background-color: #E8E7FF;
+            color: var(--secondary-color);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            border: 1px dashed var(--secondary-color);
+            display: none;
+        }
+
+        .reminder-banner.active {
+            background-color: #FFEBEB;
+            color: var(--alert-color);
+            border-color: var(--alert-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
         .results-section {
             background: #F4F5F7;
             padding: 20px;
@@ -142,80 +181,146 @@
 
         .rollover {
             font-size: 12px;
-            color: #FF5A5F;
+            color: var(--alert-color);
             font-weight: bold;
             margin-left: 5px;
+        }
+
+        /* Authentication Interface Overlay */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 30px;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal-card h2 {
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .modal-card p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .modal-card input, .modal-card select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #E0E0E0;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-card input:focus, .modal-card select:focus {
+            border-color: var(--secondary-color);
         }
     </style>
 </head>
 <body>
 
     <div class="container">
+        
+        <!-- Registration Form View -->
+        <div id="authModal" class="modal-overlay">
+            <div class="modal-card">
+                <h2>Staff Identity Registration</h2>
+                <p>Configure your account settings to authorize system tone responses and desktop sync alerts.</p>
+                <input type="email" id="staffEmail" placeholder="Enter Staff Email (e.g., name@maxfront.com)" required>
+                <input type="tel" id="staffPhone" placeholder="Enter Phone Number" required>
+                <select id="authProvider">
+                    <option value="Enterprise Portal">Sign up with Maxfront ID</option>
+                    <option value="Google Workspace">Sign up with Google Workspace</option>
+                    <option value="Apple Enterprise">Sign up with Apple Identity</option>
+                </select>
+                <button class="btn" style="width: 100%;" onclick="registerStaff()">Authorize Account</button>
+            </div>
+        </div>
+
         <header>
-            <h1>Maxfront Remote Synchronizer</h1>
-            <p>Coordinate real-time meetings across global operations teams</p>
+            <div id="userBadge" class="user-badge">Initializing Token...</div>
+            <h1>Maxfront Global Sync Platform</h1>
+            <p>Enterprise Core Communication Node</p>
         </header>
 
         <div class="input-group">
-            <label for="lagosTime">Enter Meeting Time in Nigeria (WAT):</label>
+            <label for="lagosTime">Schedule Local Meeting Node (Nigeria WAT):</label>
             <div class="time-inputs">
                 <input type="time" id="lagosTime">
-                <button class="btn" onclick="syncTimes()">Sync Times</button>
+                <button class="btn" onclick="handleTimeChange()">Deploy Tracker</button>
             </div>
+        </div>
+
+        <div id="reminderBanner" class="reminder-banner">
+            Awaiting session deployment...
         </div>
 
         <div class="results-section">
             <h3 id="resultTitle">Global Sync Times</h3>
             <div id="outputContainer">
-                <!-- Dynamic calculation loads here -->
+                <!-- Data streams populate here dynamically -->
             </div>
         </div>
     </div>
 
     <script>
-        function syncTimes() {
-            const timeInput = document.getElementById('lagosTime').value;
-            if (!timeInput) return;
+        let trackingInterval = null;
+        let alertTriggered = false;
 
-            const [hoursStr, minutesStr] = timeInput.split(':');
-            const lagosHour = parseInt(hoursStr, 10);
-            const lagosMinute = minutesStr; 
+        // Native Web Audio Synthesis Engine (Generates custom chime tones without audio assets)
+        function playNotificationTone() {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // First sound tone layer (Chime base note)
+                let osc1 = context.createOscillator();
+                let gain1 = context.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, context.currentTime); // D5 Musical frequency
+                gain1.gain.setValueAtTime(0.2, context.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.4);
+                osc1.connect(gain1);
+                gain1.connect(context.destination);
+                osc1.start();
+                osc1.stop(context.currentTime + 0.4);
 
-            document.getElementById('resultTitle').innerText = `Global Sync Times for ${timeInput} WAT (Nigeria)`;
-
-            const regions = [
-                { name: "🌍 Kuala Lumpur (Southeast Asia)", offset: 7 },
-                { name: "🌍 Dili (Timor-Leste)", offset: 8 }
-            ];
-
-            const outputContainer = document.getElementById('outputContainer');
-            outputContainer.innerHTML = ''; 
-
-            regions.forEach(region => {
-                let rawHour = lagosHour + region.offset;
-                let convertedHour = rawHour % 24;
-                let formattedHour = convertedHour.toString().padStart(2, '0');
-                let dayStatus = rawHour >= 24 ? '<span class="rollover">(Next Day)</span>' : '';
-
-                const zoneCard = document.createElement('div');
-                zoneCard.className = 'zone-card';
-                zoneCard.innerHTML = `
-                    <span class="zone-name">${region.name}</span>
-                    <span class="zone-time">${formattedHour}:${lagosMinute}${dayStatus}</span>
-                `;
-                outputContainer.appendChild(zoneCard);
-            });
+                // Second sound tone layer (Harmonic sweep delay)
+                setTimeout(() => {
+                    let osc2 = context.createOscillator();
+                    let gain2 = context.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(880.00, context.currentTime); // A5 Musical frequency
+                    gain2.gain.setValueAtTime(0.2, context.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.6);
+                    osc2.connect(gain2);
+                    gain2.connect(context.destination);
+                    osc2.start();
+                    osc2.stop(context.currentTime + 0.6);
+                }, 120);
+            } catch(e) {
+                console.error("Audio system initialized with constraint:", e);
+            }
         }
 
-        // Live Time-Aware Execution Optimization
-        window.onload = function() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            
-            document.getElementById('lagosTime').value = `${hours}:${minutes}`;
-            syncTimes(); 
-        };
-    </script>
-</body>
-</html>
+        function registerStaff() {
+            const email = document.getElementById('staffEmail').value;
+            const phone = document.getElementById('staffPhone').value;
