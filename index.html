@@ -61,6 +61,7 @@
         .meeting-actions .btn { padding: 9px 14px; font-size: 13px; }
         .share-status { display: none; margin-top: 8px; color: var(--red); font-size: 12px; }
         .share-status.visible { display: block; }
+        .share-status a { display: inline-block; margin-top: 4px; color: var(--red); font-weight: 600; overflow-wrap: anywhere; }
         .role-banner { display: none; margin-bottom: 20px; padding: 12px 14px; color: var(--black); background: var(--white); border: 1px solid var(--line-red); border-left: 4px solid var(--red); border-radius: 6px; font-size: 13px; line-height: 1.4; }
         .role-banner.visible { display: block; }
         .role-banner strong { color: var(--red); }
@@ -108,6 +109,7 @@
             <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Set meeting</button></div>
             <div class="meeting-actions"><button class="btn secondary" type="button" onclick="clearMeetingTime()">Clear meeting</button><button class="btn secondary" type="button" onclick="shareMeetingTime()">Share meeting</button></div>
             <div id="shareStatus" class="share-status" aria-live="polite"></div>
+            <a id="sharedMeetingLink" class="share-status" href="#" target="_blank" rel="noopener">Open scheduled meeting link</a>
         </div>
         <div id="reminderBanner" class="reminder-banner" aria-live="assertive">Awaiting session deployment...</div>
         <section class="results-section"><h3 id="resultTitle">Global Sync Times</h3><div id="outputContainer"></div></section>
@@ -253,6 +255,9 @@
             const shareUrl = new URL(window.location.href);
             shareUrl.searchParams.set('meeting', time);
             const shareText = shareUrl.toString();
+            const meetingLink = document.getElementById('sharedMeetingLink');
+            meetingLink.href = shareText;
+            meetingLink.classList.add('visible');
             if (navigator.share) {
                 navigator.share({ title: 'Maxfront scheduled meeting', text: 'Open this link to see the scheduled meeting and receive the alert.', url: shareText });
             } else if (navigator.clipboard) {
