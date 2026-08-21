@@ -186,7 +186,7 @@
             margin-left: 5px;
         }
 
-        /* Authentication Interface Overlay */
+        /* Registration Interface Overlay */
         .modal-overlay {
             position: absolute;
             top: 0;
@@ -287,40 +287,38 @@
         let alertTriggered = false;
 
         // Native Web Audio Synthesis Engine (Generates custom chime tones without audio assets)
-        function playNotificationTone() {
-            try {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // First sound tone layer (Chime base note)
-                let osc1 = context.createOscillator();
-                let gain1 = context.createGain();
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(587.33, context.currentTime); // D5 Musical frequency
-                gain1.gain.setValueAtTime(0.2, context.currentTime);
-                gain1.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.4);
-                osc1.connect(gain1);
-                gain1.connect(context.destination);
-                osc1.start();
-                osc1.stop(context.currentTime + 0.4);
+        if (typeof window !== 'undefined') {
+            window.playNotificationTone = function() {
+                try {
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // First sound tone layer (Chime base note)
+                    let osc1 = context.createOscillator();
+                    let gain1 = context.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(587.33, context.currentTime); // D5 Musical frequency
+                    gain1.gain.setValueAtTime(0.2, context.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.4);
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    osc1.start();
+                    osc1.stop(context.currentTime + 0.4);
 
-                // Second sound tone layer (Harmonic sweep delay)
-                setTimeout(() => {
-                    let osc2 = context.createOscillator();
-                    let gain2 = context.createGain();
-                    osc2.type = 'sine';
-                    osc2.frequency.setValueAtTime(880.00, context.currentTime); // A5 Musical frequency
-                    gain2.gain.setValueAtTime(0.2, context.currentTime);
-                    gain2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.6);
-                    osc2.connect(gain2);
-                    gain2.connect(context.destination);
-                    osc2.start();
-                    osc2.stop(context.currentTime + 0.6);
-                }, 120);
-            } catch(e) {
-                console.error("Audio system initialized with constraint:", e);
+                    // Second sound tone layer (Harmonic sweep delay)
+                    setTimeout(() => {
+                        let osc2 = context.createOscillator();
+                        let gain2 = context.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(880.00, context.currentTime); // A5 Musical frequency
+                        gain2.gain.setValueAtTime(0.2, context.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.6);
+                        osc2.connect(gain2);
+                        gain2.connect(context.destination);
+                        osc2.start();
+                        osc2.stop(context.currentTime + 0.6);
+                    }, 120);
+                } catch(e) {
+                    console.error("Audio system initialized with constraint:", e);
+                }
             }
         }
-
-        function registerStaff() {
-            const email = document.getElementById('staffEmail').value;
-            const phone = document.getElementById('staffPhone').value;
