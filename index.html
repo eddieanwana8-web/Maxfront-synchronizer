@@ -55,8 +55,12 @@
         .scheduled-meeting.visible { display: block; }
         .scheduled-meeting-label { margin-bottom: 5px; color: var(--red); font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .scheduled-meeting-time { color: var(--black); font-size: 24px; font-weight: 700; }
+        .scheduled-meeting.empty { border-style: dashed; }
+        .scheduled-meeting.empty .scheduled-meeting-time { color: var(--ink); font-size: 14px; font-weight: 400; }
         .meeting-actions { display: flex; gap: 10px; margin-top: 10px; }
         .meeting-actions .btn { padding: 9px 14px; font-size: 13px; }
+        .share-status { display: none; margin-top: 8px; color: var(--red); font-size: 12px; }
+        .share-status.visible { display: block; }
         @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
@@ -98,7 +102,8 @@
         <div id="meetingControls" class="input-group">
             <label for="lagosTime">Schedule local meeting time (Nigeria WAT)</label>
             <div class="time-inputs"><input type="time" id="lagosTime" required><button class="btn" type="button" onclick="handleTimeChange()">Set meeting</button></div>
-            <div class="meeting-actions"><button class="btn secondary" type="button" onclick="clearMeetingTime()">Clear meeting</button></div>
+            <div class="meeting-actions"><button class="btn secondary" type="button" onclick="clearMeetingTime()">Clear meeting</button><button class="btn secondary" type="button" onclick="shareMeetingTime()">Share meeting</button></div>
+            <div id="shareStatus" class="share-status" aria-live="polite"></div>
         </div>
         <div id="reminderBanner" class="reminder-banner" aria-live="assertive">Awaiting session deployment...</div>
         <section class="results-section"><h3 id="resultTitle">Global Sync Times</h3><div id="outputContainer"></div></section>
@@ -187,11 +192,13 @@
         function showScheduledMeeting(time) {
             const meetingPanel = document.getElementById('scheduledMeeting');
             if (!time) {
-                meetingPanel.classList.remove('visible');
+                meetingPanel.classList.add('visible', 'empty');
+                document.getElementById('scheduledMeetingTime').textContent = 'Waiting for your Employer to publish a meeting time.';
                 return;
             }
             document.getElementById('scheduledMeetingTime').textContent = time + ' WAT (Nigeria)';
             meetingPanel.classList.add('visible');
+            meetingPanel.classList.remove('empty');
         }
 
         function getNextMeeting(time) {
@@ -228,6 +235,29 @@
             scheduledMeetingKey = ''; syncTimes(); clearInterval(trackingInterval); checkMeetingCountdown(); trackingInterval = setInterval(checkMeetingCountdown, 1000);
         }
 
+        function shareMeetingTime() {
+            if (localStorage.getItem('account_role') !== 'Employer') return;
+            const time = localStorage.getItem('meeting_time');
+            if (!time) {
+                document.getElementById('shareStatus').textContent = 'Set a meeting time before sharing.';
+                document.getElementById('shareStatus').classList.add('visible');
+                return;
+            }
+            const shareUrl = new URL(window.location.href);
+            shareUrl.searchParams.set('meeting', time);
+            const shareText = shareUrl.toString();
+            if (navigator.share) {
+                navigator.share({ title: 'Maxfront scheduled meeting', text: 'Open this link to see the scheduled meeting and receive the alert.', url: shareText });
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareText).then(function() {
+                    document.getElementById('shareStatus').textContent = 'Meeting link copied. Send it to Staff.';
+                    document.getElementById('shareStatus').classList.add('visible');
+                });
+            } else {
+                window.prompt('Copy this meeting link and send it to Staff:', shareText);
+            }
+        }
+
         function clearMeetingTime() {
             if (localStorage.getItem('account_role') !== 'Employer') return;
             localStorage.removeItem('meeting_time');
@@ -240,6 +270,8 @@
             document.getElementById('outputContainer').innerHTML = '';
         }
         window.addEventListener('load', function() {
+            const sharedMeeting = new URLSearchParams(window.location.search).get('meeting');
+            if (sharedMeeting && /^([01]\d|2[0-3]):[0-5]\d$/.test(sharedMeeting)) localStorage.setItem('meeting_time', sharedMeeting);
             loadActiveSession();
             if (localStorage.getItem('staff_email')) document.getElementById('notificationSetup').classList.add('visible');
             const savedMeeting = localStorage.getItem('meeting_time'); const now = new Date();
