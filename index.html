@@ -5,43 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maxfront Global Sync Platform</title>
     <style>
-        :root { --navy: #0a2540; --blue: #635bff; --mint: #00a889; --paper: #f8f9fa; --red: #e34b50; }
+        :root { --ink: #8b0000; --red: #8b0000; --deep-red: #8b0000; --soft-red: #fff1f1; --line-red: #e8b8b8; --white: #ffffff; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Tahoma, sans-serif; }
-        body { min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; color: #333; background: radial-gradient(circle at top left, #e8e7ff, transparent 42%), var(--paper); }
-        .container { position: relative; width: 100%; max-width: 600px; padding: 30px; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 12px 34px rgba(10, 37, 64, .12); }
-        header { margin-bottom: 25px; padding-bottom: 15px; text-align: center; border-bottom: 2px solid #eee; }
-        header h1 { margin-bottom: 5px; color: var(--navy); font-size: 24px; }
-        header p { color: #666; font-size: 14px; }
-        .user-badge { display: inline-block; margin-bottom: 10px; padding: 6px 12px; color: var(--blue); background: #e8e7ff; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        body { min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; color: var(--ink); background: linear-gradient(135deg, var(--white) 0%, var(--soft-red) 100%); }
+        .container { position: relative; width: 100%; max-width: 600px; padding: 30px; overflow: hidden; background: var(--white); border: 1px solid var(--line-red); border-radius: 12px; box-shadow: 0 12px 34px rgba(201, 31, 50, .14); }
+        header { margin-bottom: 25px; padding-bottom: 15px; text-align: center; border-bottom: 2px solid var(--line-red); }
+        header h1 { margin-bottom: 5px; color: var(--deep-red); font-size: 24px; }
+        header p { color: var(--red); font-size: 14px; }
+        .user-badge { display: inline-block; margin-bottom: 10px; padding: 6px 12px; color: var(--white); background: var(--red); border-radius: 20px; font-size: 12px; font-weight: 600; }
         .input-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: var(--navy); font-weight: 600; }
+        label { display: block; margin-bottom: 8px; color: var(--deep-red); font-weight: 600; }
         .time-inputs { display: flex; gap: 15px; align-items: center; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; outline: none; font-size: 16px; }
-        input:focus, select:focus { border-color: var(--blue); }
+        input, select { width: 100%; padding: 12px; border: 2px solid var(--line-red); border-radius: 6px; outline: none; font-size: 16px; color: var(--ink); background: var(--white); }
+        input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--soft-red); }
         input[type="time"] { flex: 1; }
-        .btn { padding: 12px 24px; color: white; background: var(--blue); border: 0; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        .btn:hover { background: #4b43d3; }
-        .btn.secondary { padding: 9px 14px; font-size: 13px; background: var(--navy); }
+        .btn { padding: 12px 24px; color: var(--white); background: var(--red); border: 0; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn:hover { background: var(--deep-red); }
+        .btn.secondary { padding: 9px 14px; font-size: 13px; background: var(--deep-red); }
         .full-width { width: 100%; }
-        .reminder-banner { display: none; margin-bottom: 25px; padding: 12px; color: var(--blue); background: #e8e7ff; border: 1px dashed var(--blue); border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; }
-        .reminder-banner.active { color: var(--red); background: #ffebeb; border-color: var(--red); animation: pulse 1.5s infinite; }
+        .reminder-banner { display: none; margin-bottom: 25px; padding: 12px; color: var(--deep-red); background: var(--soft-red); border: 1px dashed var(--red); border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; }
+        .reminder-banner.active { color: var(--white); background: var(--red); border-color: var(--deep-red); animation: pulse 1.5s infinite; }
         @keyframes pulse { 50% { opacity: .6; } }
-        .results-section { padding: 20px; background: #f4f5f7; border-left: 4px solid var(--mint); border-radius: 8px; }
-        .results-section h3 { margin-bottom: 15px; color: var(--navy); font-size: 16px; }
-        .zone-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
+        .results-section { padding: 20px; background: var(--soft-red); border-left: 4px solid var(--red); border-radius: 8px; }
+        .results-section h3 { margin-bottom: 15px; color: var(--deep-red); font-size: 16px; }
+        .zone-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line-red); }
         .zone-card:last-child { border-bottom: 0; }
-        .zone-time { color: var(--blue); font-size: 18px; font-weight: 700; }
-        .rollover { margin-left: 5px; color: var(--red); font-size: 12px; }
-        .modal-overlay { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 30px; background: var(--navy); }
-        .modal-card { width: 100%; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,.2); }
-        .modal-card h2 { margin-bottom: 5px; color: var(--navy); }
-        .modal-card p { margin-bottom: 15px; color: #666; font-size: 13px; line-height: 1.5; }
+        .zone-time { color: var(--red); font-size: 18px; font-weight: 700; }
+        .rollover { margin-left: 5px; color: var(--deep-red); font-size: 12px; }
+        .modal-overlay { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 30px; background: var(--red); }
+        .modal-card { width: 100%; padding: 25px; background: var(--white); border-radius: 8px; box-shadow: 0 4px 15px rgba(125, 16, 27, .25); }
+        .modal-card h2 { margin-bottom: 5px; color: var(--deep-red); }
+        .modal-card p { margin-bottom: 15px; color: var(--ink); font-size: 13px; line-height: 1.5; }
         .modal-card input, .modal-card select { margin-bottom: 15px; }
-        .notification-setup { display: none; gap: 12px; align-items: center; margin-bottom: 20px; padding: 14px; background: #eefaf7; border: 1px solid #bce9df; border-radius: 8px; }
+        .notification-setup { display: none; gap: 12px; align-items: center; margin-bottom: 20px; padding: 14px; background: var(--soft-red); border: 1px solid var(--line-red); border-radius: 8px; }
         .notification-setup.visible { display: flex; }
-        .notification-setup strong { display: block; margin-bottom: 3px; color: var(--navy); font-size: 14px; }
-        .notification-setup p, .notification-status { color: #47706a; font-size: 12px; line-height: 1.4; }
-        .notification-status.enabled { color: var(--mint); }
+        .notification-setup strong { display: block; margin-bottom: 3px; color: var(--deep-red); font-size: 14px; }
+        .notification-setup p, .notification-status { color: var(--ink); font-size: 12px; line-height: 1.4; }
+        .notification-status.enabled { color: var(--red); }
         @media (max-width: 520px) { .container { padding: 22px; } .time-inputs { align-items: stretch; flex-direction: column; } .time-inputs .btn { width: 100%; } .modal-overlay { padding: 20px; } }
     </style>
 </head>
