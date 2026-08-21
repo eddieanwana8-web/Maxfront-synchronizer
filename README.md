@@ -15,3 +15,9 @@ To handle calculations that cross over into a new calendar day cleanly without b
 - **Frontend:** Semantic HTML5, CSS3 (Flexbox architecture), and JavaScript (ES6 DOM manipulation).
 - **Backend / Scripting:** Python 3 (Dictionaries, user-input validation, and functional loops).
 - **Workflow Tools:** Git version control, GitHub Pages deployment framework.
+
+## 🔮 Future Product Roadmap
+This version represents the core **MVP (Minimum Viable Product)**. The planned architectural scaling phase includes:
+1. **Secure Authentication & Identity Management:** Integrating OAuth 2.0 (Google, Apple, and Phone number sign-ins) backed by a relational database to manage secure staff directories.
+2. **Persistent Cloud Messaging:** Implementing a backend worker service (Node.js/Python) coupled with **Firebase Cloud Messaging (FCM)** to dispatch background alerts even when the browser or mobile application is completely closed.
+3. **Native OS Audio Hooks:** Injecting custom audio assets into the application payload to fire a unique, distinct notification tone exactly 15 minutes before cross-regional synchronization meetings begin.
